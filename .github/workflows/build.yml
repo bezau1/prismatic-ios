@@ -8,6 +8,10 @@ on:
         type: choice
         default: all
         options: [all, standard, trollstore, jailbreak]
+      release:
+        description: Publish the built files as a GitHub prerelease
+        type: boolean
+        default: true
   push:
     branches: [main]
 
@@ -77,3 +81,34 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with: { name: "build-log-${{ matrix.kind }}", path: build.log }
+
+  release:                     # only runs if every selected build compiled and packaged
+    needs: build
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.release }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: Prismatic*
+          merge-multiple: true
+          path: out
+      - run: ls -l out
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.1.0-build.${{ github.run_number }}
+          name: Prismatic 0.1.0 (build ${{ github.run_number }})
+          target_commitish: ${{ github.sha }}
+          prerelease: true
+          files: out/*
+          body: |
+            Unsigned builds of Prismatic, compiled by CI. Experimental: not yet tested on a device.
+
+            | File | For |
+            |---|---|
+            | `Prismatic.ipa` | Sideloading (SideStore/AltStore). Needs JIT and a decrypted GD IPA |
+            | `Prismatic-TrollStore.tipa` | TrollStore: installs, decrypts and manages GD instances |
+            | `Prismatic-Jailbreak-rootful.deb` / `-rootless.deb` | Jailbroken devices |
+
+            Commit: ${{ github.sha }}
