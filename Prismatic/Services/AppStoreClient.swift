@@ -26,6 +26,21 @@ enum StoreError: LocalizedError {
 final class AppStoreClient {
     static let shared = AppStoreClient()
     static let gdBundleId = "com.robtop.geometryjump"
+
+    private init() { Self.configureDeviceIdentity() }
+
+    /// ApplePackage cannot read a hardware ID on iOS (it would crash on an empty one), so the app must supply
+    /// a stable GUID before any request. Generated once and kept in the Keychain: Apple ties sessions to it,
+    /// and changing it between logins can get an account flagged.
+    private static func configureDeviceIdentity() {
+        let key = "storeDeviceIdentifier"
+        var id = Keychain.load(key: key).flatMap { String(data: $0, encoding: .utf8) } ?? ""
+        if id.count != 12 {
+            id = DeviceIdentifier.random()
+            Keychain.save(Data(id.utf8), key: key)
+        }
+        Configuration.deviceIdentifier = id
+    }
     /// Apple wants the same SAP session for the password attempt and the follow-up 2FA code.
     private var pending: Authenticator?
 
