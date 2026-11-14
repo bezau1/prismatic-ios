@@ -4,7 +4,6 @@ struct InstancesView: View {
     @EnvironmentObject var store: InstanceStore
     @EnvironmentObject var acct: AccountState
     @State private var adding = false
-    @State private var signingIn = false
     @State private var exportItem: ExportItem?
     @State private var exportError: String?
 
@@ -22,22 +21,17 @@ struct InstancesView: View {
                 }.onDelete { idx in idx.map { store.instances[$0] }.forEach(store.delete) }
                 if let e = exportError { Text(e).foregroundColor(.red) }
                 if store.instances.isEmpty {
-                    Text("No instances yet. Tap + to add a Geometry Dash version.").foregroundColor(.secondary)
+                    Text("No instances yet. Tap + and import a Geometry Dash IPA.").foregroundColor(.secondary)
                 }
             }
             .navigationTitle("Prismatic")
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(acct.account?.email ?? "Sign in") { signingIn = true }.font(.footnote)
-                }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button { (acct.account == nil && !Variant.current.canDecrypt) ? (signingIn = true) : (adding = true) }
-                        label: { Image(systemName: "plus") }
+                    Button { adding = true } label: { Image(systemName: "plus") }
                 }
             }
             .sheet(isPresented: $adding) { AddInstanceView().environmentObject(store).environmentObject(acct) }
             .sheet(item: $exportItem) { ShareSheet(url: $0.url) }
-            .sheet(isPresented: $signingIn) { SignInView().environmentObject(acct) }
         }.navigationViewStyle(StackNavigationViewStyle())
     }
 

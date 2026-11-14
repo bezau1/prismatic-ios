@@ -12,13 +12,14 @@ struct GDVersion: Identifiable, Hashable {
 }
 
 enum StoreError: LocalizedError {
-    case twoFactorRequired, notPurchased, http(Int), malformed(String)
+    case twoFactorRequired, notPurchased, http(Int), malformed(String), message(String)
     var errorDescription: String? {
         switch self {
         case .twoFactorRequired: return "Enter the 2FA code sent to your devices, then tap Sign in again."
         case .notPurchased: return "This Apple ID hasn't purchased Geometry Dash."
         case .http(let c): return "Server returned HTTP \(c)."
         case .malformed(let m): return "Unexpected response: \(m)"
+        case .message(let m): return m
         }
     }
 }
