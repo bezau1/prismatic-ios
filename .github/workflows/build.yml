@@ -31,7 +31,7 @@ jobs:
 
   build:
     needs: plan
-    runs-on: macos-14
+    runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
