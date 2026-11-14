@@ -13,7 +13,7 @@ struct SignInView: View {
     var body: some View {
         NavigationView {
             Form {
-                Section(footer: Text("Use the Apple ID that purchased Geometry Dash. Credentials go straight to Apple; only a session token is stored.")) {
+                Section(footer: Text("Use the Apple ID that purchased Geometry Dash. Credentials go straight to Apple and are kept in the Keychain.")) {
                     TextField("Apple ID", text: $email).autocapitalization(.none).keyboardType(.emailAddress)
                     SecureField("Password", text: $password)
                     if needs2FA { TextField("2FA code", text: $code).keyboardType(.numberPad) }
@@ -27,7 +27,7 @@ struct SignInView: View {
     @MainActor func go() async {
         busy = true; defer { busy = false }
         do {
-            acct.account = try await AppStoreClient().login(email: email, password: password, code: needs2FA ? code : nil)
+            acct.account = try await AppStoreClient.shared.login(email: email, password: password, code: needs2FA ? code : nil)
             pm.wrappedValue.dismiss()
         } catch StoreError.twoFactorRequired { needs2FA = true; error = "Enter the code Apple just sent, then tap Sign in again." }
         catch { self.error = error.localizedDescription }

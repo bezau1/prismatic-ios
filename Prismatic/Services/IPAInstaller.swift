@@ -5,18 +5,17 @@ import ZIPFoundation
 enum IPAInstaller {
     static func install(version: GDVersion, account: AppStoreAccount, into inst: Instance,
                         progress: @escaping (Double) -> Void) async throws -> Instance {
-        let client = AppStoreClient()
-        let app = try await client.trackId()
-        let info = try await client.downloadInfo(account: account, appId: app, versionId: version.externalId)
+        var acct = account
         let fm = FileManager.default
         try fm.createDirectory(at: inst.root.appendingPathComponent("App"), withIntermediateDirectories: true)
         try fm.createDirectory(at: inst.dataDir, withIntermediateDirectories: true)
 
+        progress(0.2)
+        let tmp = try await AppStoreClient.shared.downloadIPA(account: &acct, externalVersionId: version.externalId)
         let ipa = inst.root.appendingPathComponent("game.ipa")
-        let (tmp, _) = try await URLSession.shared.pDownload(from: info.url)
         try? fm.removeItem(at: ipa); try fm.moveItem(at: tmp, to: ipa)
         progress(0.8)
-        try await extract(ipa: ipa, sinf: info.sinf, into: inst)
+        try await extract(ipa: ipa, sinf: nil, into: inst) // receipt is already inside the IPA
         if !Variant.current.canDecrypt { try? fm.removeItem(at: ipa) } // privileged builds reinstall from it to decrypt
         progress(1)
         var i = inst; i.externalVersionId = version.externalId; i.gdVersion = version.version

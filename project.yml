@@ -3,6 +3,8 @@ options:
   bundleIdPrefix: dev.prismatic
   deploymentTarget: { iOS: "14.0" }   # Geode iOS needs 14; nothing here requires newer
 packages:
+  ApplePackage:
+    path: Packages/ApplePackage
   ZIPFoundation:
     url: https://github.com/weichsel/ZIPFoundation
     from: 0.9.19
@@ -13,12 +15,13 @@ targetTemplates:
     sources: [Prismatic]
     dependencies:
       - package: ZIPFoundation
+      - package: ApplePackage
       - framework: OpenSSL/Frameworks/OpenSSL.xcframework   # fetched by CI / see README
         embed: true
     settings:
       base:
         CLANG_CXX_LANGUAGE_STANDARD: gnu++17
-        HEADER_SEARCH_PATHS: "$(SRCROOT)/Prismatic/Vendor/ZSign $(SRCROOT)/Prismatic/Vendor/ZSign/common"
+        HEADER_SEARCH_PATHS: "$(SRCROOT)/Prismatic/Vendor/ZSign $(SRCROOT)/Prismatic/Vendor/ZSign/common $(SRCROOT)/Prismatic/Vendor/litehook/src $(SRCROOT)/Prismatic/Vendor/litehook/external/include $(SRCROOT)/Prismatic/Vendor/DyldBypass"
         FRAMEWORK_SEARCH_PATHS: "$(SRCROOT)/OpenSSL/Frameworks/iphoneos"
         OTHER_LDFLAGS: "$(inherited) -lc++"
         SWIFT_OBJC_BRIDGING_HEADER: Prismatic/Launcher/Prismatic-Bridging-Header.h

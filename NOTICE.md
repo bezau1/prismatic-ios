@@ -4,6 +4,9 @@ Prismatic is licensed under the **GNU AGPL-3.0** (see `LICENSE`).
 
 ## Included code
 - **ZSign** (`Prismatic/Vendor/ZSign`): copied unmodified from [LiveContainer](https://github.com/LiveContainer/livecontainer) (AGPL-3.0, Copyright the LiveContainer authors). LiveContainer's ZSign is based on [zhlynn/zsign](https://github.com/zhlynn/zsign) (MIT) through [Feather's Zsign-Package fork](https://github.com/khcrysalis/Zsign-Package); the upstream notices are retained in the source files where present.
+- **dyld library-validation bypass** (`Prismatic/Vendor/DyldBypass`): copied from LiveContainer (AGPL-3.0); it is based on xpn's [DyldDeNeuralyzer](https://github.com/xpn/DyldDeNeuralyzer) / "Restoring dyld memory loading".
+- **litehook** (`Prismatic/Vendor/litehook`): MIT, Copyright (c) 2022-2024 Lars Fröder (see its `LICENSE`).
+- **ApplePackage** (`Packages/ApplePackage`): MIT, Copyright (c) 2025 Lakr233 (see its `LICENSE`). App Store login/SAP signing, version lookup and downloads. Deployment target lowered to iOS 14.
 - **OpenSSL** (`krzyzanowskim/OpenSSL` xcframework, fetched at build time): Apache-2.0 / OpenSSL licenses.
 
 ## Referenced designs

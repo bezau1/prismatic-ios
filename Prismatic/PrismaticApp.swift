@@ -1,4 +1,5 @@
 import SwiftUI
+import ApplePackage
 
 @main
 struct PrismaticApp: App {
@@ -14,12 +15,12 @@ struct PrismaticApp: App {
 
 final class AccountState: ObservableObject {
     @Published var account: AppStoreAccount? {
-        didSet { if let a = account, let d = try? JSONEncoder().encode(a) {
-            UserDefaults.standard.set(d, forKey: "account") }
-            else if account == nil { UserDefaults.standard.removeObject(forKey: "account") } }
+        didSet {
+            if let a = account, let d = try? JSONEncoder().encode(a) { Keychain.save(d, key: "account") }
+            else if account == nil { Keychain.delete(key: "account") }
+        }
     }
-    init() { // TODO: move to Keychain before shipping
-        if let d = UserDefaults.standard.data(forKey: "account") {
-            account = try? JSONDecoder().decode(AppStoreAccount.self, from: d) }
+    init() {
+        if let d = Keychain.load(key: "account") { account = try? JSONDecoder().decode(AppStoreAccount.self, from: d) }
     }
 }

@@ -39,8 +39,8 @@ struct AddInstanceView: View {
         }
     }
     @MainActor func load() async {
-        guard let a = acct.account, versions.isEmpty else { return }
-        do { versions = try await AppStoreClient().versions(account: a); picked = versions.first }
+        guard var a = acct.account, versions.isEmpty else { return }
+        do { versions = try await AppStoreClient.shared.versions(account: &a); acct.account = a; picked = versions.first }
         catch { self.error = error.localizedDescription }
     }
     @MainActor func create() async {

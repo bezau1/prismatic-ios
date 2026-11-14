@@ -80,6 +80,10 @@ void PrismaticLaunchGuest(NSString *appPath, NSString *dataPath, NSString *bundl
     if (geodePath && !dlopen(geodePath.UTF8String, RTLD_NOW | RTLD_GLOBAL))
         NSLog(@"[Prismatic] Geode load failed: %s", dlerror());
 
+#if !PRISMATIC_PRIVILEGED
+    // Standard (sideloaded) build: let dyld accept the guest's signature (TrollStore/JB use entitlements instead).
+    init_bypassDyldLibValidation();
+#endif
     NSString *patched = patchedCopy(exe, dataPath);
     void *handle = patched ? dlopen(patched.UTF8String, RTLD_LAZY) : NULL;
     if (!handle) { NSLog(@"[Prismatic] guest dlopen failed: %s", dlerror()); return; }
