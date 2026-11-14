@@ -105,7 +105,7 @@ BOOL PrismaticInstallIPA(NSString *ipa, NSString **err) {
     id ws = [NSClassFromString(@"LSApplicationWorkspace") performSelector:NSSelectorFromString(@"defaultWorkspace")];
     SEL sel = NSSelectorFromString(@"installApplication:withOptions:error:");
     if (![ws respondsToSelector:sel]) FAIL(@"installApplication API missing on this iOS version.");
-    NSError *e = nil; NSDictionary *opts = @{ @"PackageType": @"Customer" }; NSURL *url = [NSURL fileURLWithPath:ipa];
+    NSError *__autoreleasing e = nil; NSDictionary *opts = @{ @"PackageType": @"Customer" }; NSURL *url = [NSURL fileURLWithPath:ipa];
     NSMethodSignature *sig = [ws methodSignatureForSelector:sel];
     NSInvocation *inv = [NSInvocation invocationWithMethodSignature:sig];
     inv.target = ws; inv.selector = sel; NSError *__autoreleasing *ep = &e;
