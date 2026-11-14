@@ -11,6 +11,8 @@ A Minecraft-launcher-style manager for Geometry Dash on iOS (min iOS 14). Create
 
 Both privileged builds uninstall the App Store copy of GD (and its save data) when they install an instance's version.
 
+**Export:** once an instance is decrypted (TrollStore/Jailbreak build, or an import), long-press it → *Export decrypted IPA* to share a normal IPA that non-TrollStore devices can import in the Standard build. The FairPlay receipt (`SC_Info`) is stripped.
+
 ## Layout
 - `Services/AppStoreClient.swift` – Apple ID login (+2FA), version list, IPA download (ipatool protocol)
 - `Launcher/PrismaticDecrypt.m` – installed-app lookup, TrollDecrypt-style dump, jailbreak installd install

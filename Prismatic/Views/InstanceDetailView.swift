@@ -7,6 +7,7 @@ struct InstanceDetailView: View {
     @State private var message: String?
     @State private var importing = false
     @State private var busy = false
+    @State private var exportItem: ExportItem?
 
     func info(_ k: String, _ v: String) -> some View { HStack { Text(k); Spacer(); Text(v).foregroundColor(.secondary) } }
 
@@ -35,9 +36,15 @@ struct InstanceDetailView: View {
                     Button("Import decrypted IPA…") { importing = true }
                 }
             }
+            if !instance.encrypted {
+                Section(footer: Text("Packs this decrypted build as a normal IPA you can sideload on devices without TrollStore. For your own devices; the FairPlay receipt is left out.")) {
+                    Button("Export decrypted IPA…") { exportIPA() }.disabled(busy)
+                }
+            }
             if let message = message { Text(message).foregroundColor(.orange) }
         }
         .navigationTitle(instance.name)
+        .sheet(item: $exportItem) { ShareSheet(url: $0.url) }
         .fileImporter(isPresented: $importing, allowedContentTypes: [.zip, .data]) { r in
             if case .success(let u) = r { Task { await importIPA(u) } }
         }
@@ -66,6 +73,15 @@ struct InstanceDetailView: View {
             instance.encrypted = MachOInspector.isEncrypted(instance.appBundle.appendingPathComponent("GeometryJump"))
             store.update(instance); message = instance.encrypted ? "Still encrypted." : "Decrypted. Ready to launch."
         } catch { message = error.localizedDescription }
+    }
+    @MainActor func exportIPA() {
+        busy = true; message = "Packing IPA…"
+        let inst = instance
+        Task {
+            defer { busy = false }
+            do { exportItem = ExportItem(url: try await Task.detached { try IPAExporter.export(inst) }.value); message = nil }
+            catch { message = error.localizedDescription }
+        }
     }
     @MainActor func importIPA(_ url: URL) async {
         _ = url.startAccessingSecurityScopedResource(); defer { url.stopAccessingSecurityScopedResource() }
