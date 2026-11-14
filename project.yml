@@ -1,0 +1,22 @@
+name: Prismatic
+options:
+  bundleIdPrefix: dev.prismatic
+  deploymentTarget: { iOS: "16.0" }
+packages:
+  ZIPFoundation:
+    url: https://github.com/weichsel/ZIPFoundation
+    from: 0.9.19
+targets:
+  Prismatic:
+    type: application
+    platform: iOS
+    sources: [Prismatic]
+    dependencies:
+      - package: ZIPFoundation
+    settings:
+      base:
+        SWIFT_OBJC_BRIDGING_HEADER: Prismatic/Launcher/Prismatic-Bridging-Header.h
+        PRODUCT_BUNDLE_IDENTIFIER: dev.prismatic.launcher
+        INFOPLIST_FILE: Prismatic/Info.plist
+        # Needed so guest code can be mapped RWX when JIT is attached
+        CODE_SIGN_ENTITLEMENTS: Prismatic/Prismatic.entitlements
