@@ -1,21 +1,40 @@
 name: Build
 
 on:
+  workflow_dispatch:          # run it yourself: Actions -> Build -> Run workflow
+    inputs:
+      build:
+        description: Which build (each one uses a macOS runner)
+        type: choice
+        default: all
+        options: [all, standard, trollstore, jailbreak]
   push:
-    branches: [main, "claude/**"]
-  pull_request:
-  workflow_dispatch:
+    branches: [main]
 
 jobs:
+  plan:                        # cheap Linux job: decides which macOS builds to queue
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.m.outputs.matrix }}
+    steps:
+      - id: m
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          want = "${{ inputs.build }}" or "all"
+          all_ = [{"scheme":"Prismatic","kind":"standard"},
+                  {"scheme":"Prismatic-TrollStore","kind":"trollstore"},
+                  {"scheme":"Prismatic-Jailbreak","kind":"jailbreak"}]
+          pick = [b for b in all_ if want in ("all", b["kind"])]
+          print("matrix=" + json.dumps({"include": pick}))
+          PY
+
   build:
+    needs: plan
     runs-on: macos-14
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - { scheme: Prismatic,             kind: standard }
-          - { scheme: Prismatic-TrollStore,  kind: trollstore }
-          - { scheme: Prismatic-Jailbreak,   kind: jailbreak }
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
       - name: Tools
