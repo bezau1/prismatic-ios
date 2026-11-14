@@ -1,10 +1,11 @@
 name: Prismatic
 options:
   bundleIdPrefix: dev.prismatic
-  deploymentTarget: { iOS: "14.0" }   # Geode iOS needs 14; nothing here requires newer
+  deploymentTarget: { iOS: "15.0" }   # ApplePackage needs 15; Geode iOS needs 14
 packages:
   ApplePackage:
-    path: Packages/ApplePackage
+    url: https://github.com/Lakr233/ApplePackage
+    revision: 391bfe6ee6598d73e4f94b88b38b50bd6f6ec67b
   ZIPFoundation:
     url: https://github.com/weichsel/ZIPFoundation
     from: 0.9.19
@@ -27,7 +28,7 @@ targetTemplates:
         SWIFT_OBJC_BRIDGING_HEADER: Prismatic/Launcher/Prismatic-Bridging-Header.h
         PRODUCT_BUNDLE_IDENTIFIER: dev.prismatic.launcher
         INFOPLIST_FILE: Prismatic/Info.plist
-        IPHONEOS_DEPLOYMENT_TARGET: "14.0"
+        IPHONEOS_DEPLOYMENT_TARGET: "15.0"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
 targets:
   Prismatic:                # sideload build (SideStore/AltStore/Feather): needs JIT + decrypted IPA
