@@ -15,5 +15,7 @@ struct Instance: Codable, Identifiable, Hashable {
     var root: URL { InstanceStore.baseURL.appendingPathComponent(id.uuidString) }
     var appBundle: URL { root.appendingPathComponent("App/GeometryJump.app") }
     var dataDir: URL { root.appendingPathComponent("Data") }   // guest's fake $HOME
+    /// Clean decrypted IPA (before Prismatic patches/signs it): what other launchers, e.g. Geode's, should get.
+    var pristineIPA: URL { root.appendingPathComponent("decrypted.ipa") }
     var geodeDir: URL { dataDir.appendingPathComponent("Documents/geode") }
 }

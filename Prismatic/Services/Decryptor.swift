@@ -38,6 +38,7 @@ enum Decryptor {
         try FileManager.default.createDirectory(at: inst.appBundle.deletingLastPathComponent(), withIntermediateDirectories: true)
         var err: NSString?
         if !PrismaticDecryptBundle(src, inst.appBundle.path, &err) { throw DecryptError.failed(err as String? ?? "decrypt failed") }
+        do { try IPAExporter.pack(app: inst.appBundle, to: inst.pristineIPA) } catch { PLog.log("couldn't save clean IPA: \(error.localizedDescription)") }
         try Signer.signBundle(inst.appBundle, bundleId: inst.bundleId) // original signature no longer matches the decrypted pages
     }
 

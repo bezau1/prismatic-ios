@@ -8,6 +8,7 @@ struct InstanceDetailView: View {
     @State private var importing = false
     @State private var busy = false
     @State private var exportItem: ExportItem?
+    @State private var showGeode = false
 
     func info(_ k: String, _ v: String) -> some View { HStack { Text(k); Spacer(); Text(v).foregroundColor(.secondary) } }
 
@@ -22,9 +23,8 @@ struct InstanceDetailView: View {
             Section(footer: footer) {
                 Button("Launch") { Task { await run(geode: false) } }
                     .disabled(busy || (instance.encrypted && !Variant.current.canDecrypt))
-                Button("Geode mode") { Task { await run(geode: true) } }
-                    .disabled(busy || !GeodeManager.isSupported(instance.gdVersion)
-                              || (instance.encrypted && !Variant.current.canDecrypt))
+                Button("Geode mode…") { showGeode = true }
+                    .disabled(busy || !GeodeManager.isSupported(instance.gdVersion) || instance.encrypted)
             }
             if instance.encrypted && Variant.current.canDecrypt {
                 Section(footer: Text("Installs GD \(instance.gdVersion) from the App Store IPA, decrypts it, then deletes the installed app. Done once; after that this instance runs without FairPlay.")) {
@@ -45,6 +45,7 @@ struct InstanceDetailView: View {
         }
         .navigationTitle(instance.name)
         .sheet(item: $exportItem) { ShareSheet(url: $0.url) }
+        .sheet(isPresented: $showGeode) { GeodeSheet(instance: instance) }
         .fileImporter(isPresented: $importing, allowedContentTypes: [.zip, .data]) { r in
             if case .success(let u) = r { Task { await importIPA(u) } }
         }

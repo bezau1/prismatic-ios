@@ -7,6 +7,7 @@
 <key>CFBundleShortVersionString</key><string>0.1.0</string>
 <key>CFBundleVersion</key><string>1</string>
 <key>UILaunchScreen</key><dict/>
+<key>UIFileSharingEnabled</key><true/><key>LSSupportsOpeningDocumentsInPlace</key><true/>
 <key>CFBundleURLTypes</key><array><dict><key>CFBundleURLSchemes</key><array><string>prismatic</string></array></dict></array>
-<key>LSApplicationQueriesSchemes</key><array><string>sidestore</string><string>stikjit</string><string>apple-magnifier</string></array>
+<key>LSApplicationQueriesSchemes</key><array><string>sidestore</string><string>stikjit</string><string>apple-magnifier</string><string>geode</string></array>
 </dict></plist>

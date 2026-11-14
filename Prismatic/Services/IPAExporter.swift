@@ -3,24 +3,39 @@ import SwiftUI
 import UIKit
 import ZIPFoundation
 
-/// Packs a decrypted instance back into a normal IPA that any sideloader (non-TrollStore devices) can import.
+/// Packs decrypted instances into normal IPAs, for other sideloaders and for handing to Geode's launcher.
 enum IPAExporter {
-    static func export(_ inst: Instance) throws -> URL {
-        guard !MachOInspector.isEncrypted(inst.appBundle.appendingPathComponent("GeometryJump")) else {
-            throw StoreError.malformed("This instance is still encrypted; decrypt it first.")
-        }
+    /// Zips an .app into an IPA, leaving out the FairPlay receipt (it is tied to your Apple ID and useless once decrypted).
+    static func pack(app: URL, to out: URL) throws {
         let fm = FileManager.default
         let work = fm.temporaryDirectory.appendingPathComponent("export-\(UUID().uuidString)")
         let payload = work.appendingPathComponent("Payload")
         try fm.createDirectory(at: payload, withIntermediateDirectories: true)
-        let app = payload.appendingPathComponent("GeometryJump.app")
-        try fm.copyItem(at: inst.appBundle, to: app)
-        // The FairPlay receipt is bound to your Apple ID and useless once decrypted: don't ship it.
-        try? fm.removeItem(at: app.appendingPathComponent("SC_Info"))
-        let out = fm.temporaryDirectory.appendingPathComponent("Prismatic-GD-\(inst.gdVersion)-decrypted.ipa")
+        defer { try? fm.removeItem(at: work) }
+        let copy = payload.appendingPathComponent(app.lastPathComponent)
+        try fm.copyItem(at: app, to: copy)
+        try? fm.removeItem(at: copy.appendingPathComponent("SC_Info"))
         try? fm.removeItem(at: out)
         try fm.zipItem(at: payload, to: out, shouldKeepParent: true)
-        try? fm.removeItem(at: work)
+    }
+
+    /// Documents/Exports, which shows up in the Files app under Prismatic.
+    static func exportsDir() throws -> URL {
+        let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("Exports")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir
+    }
+
+    static func export(_ inst: Instance) throws -> URL {
+        guard !inst.encrypted else { throw StoreError.message("This instance is still encrypted; decrypt it first.") }
+        let fm = FileManager.default
+        let out = try exportsDir().appendingPathComponent("Prismatic-GD-\(inst.gdVersion)-decrypted.ipa")
+        try? fm.removeItem(at: out)
+        if fm.fileExists(atPath: inst.pristineIPA.path) {
+            try fm.copyItem(at: inst.pristineIPA, to: out)   // clean copy, as imported/decrypted
+        } else {
+            try pack(app: inst.appBundle, to: out)           // older instances: best effort from the patched app
+        }
         return out
     }
 }
