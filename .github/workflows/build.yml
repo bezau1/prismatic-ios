@@ -55,6 +55,10 @@ jobs:
             -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
             build | tee build.log | tail -n 60
+      - name: Show compiler errors
+        if: failure()
+        run: |
+          grep -E "error:|Undefined symbols|duplicate symbol" build.log | grep -vE "Werror|Wno-error|-Xcc" | head -40 || true
       - name: Package
         run: |
           APP="build/Build/Products/Release-iphoneos/${{ matrix.scheme }}.app"
