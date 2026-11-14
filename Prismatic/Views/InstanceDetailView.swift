@@ -4,7 +4,9 @@ import UniformTypeIdentifiers
 struct InstanceDetailView: View {
     @EnvironmentObject var store: InstanceStore
     @State var instance: Instance
-    @State private var message: String?, importing = false, busy = false
+    @State private var message: String?
+    @State private var importing = false
+    @State private var busy = false
 
     func info(_ k: String, _ v: String) -> some View { HStack { Text(k); Spacer(); Text(v).foregroundColor(.secondary) } }
 

@@ -3,7 +3,8 @@ import SwiftUI
 struct InstancesView: View {
     @EnvironmentObject var store: InstanceStore
     @EnvironmentObject var acct: AccountState
-    @State private var adding = false, signingIn = false
+    @State private var adding = false
+    @State private var signingIn = false
 
     var body: some View {
         NavigationView {

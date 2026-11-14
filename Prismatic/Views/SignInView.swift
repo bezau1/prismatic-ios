@@ -3,8 +3,12 @@ import SwiftUI
 struct SignInView: View {
     @EnvironmentObject var acct: AccountState
     @Environment(\.presentationMode) var pm
-    @State private var email = "", password = "", code = ""
-    @State private var needs2FA = false, busy = false, error: String?
+    @State private var email = ""
+    @State private var password = ""
+    @State private var code = ""
+    @State private var needs2FA = false
+    @State private var busy = false
+    @State private var error: String?
 
     var body: some View {
         NavigationView {

@@ -7,7 +7,8 @@ struct AddInstanceView: View {
     @State private var name = "Geometry Dash"
     @State private var versions: [GDVersion] = []
     @State private var picked: GDVersion?
-    @State private var progress: Double?, error: String?
+    @State private var progress: Double?
+    @State private var error: String?
 
     var body: some View {
         NavigationView {
