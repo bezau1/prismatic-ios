@@ -64,9 +64,11 @@ jobs:
               mkdir Payload && cp -R "$APP" Payload/ && zip -qry out/Prismatic.ipa Payload ;;
             trollstore)
               ldid -SPrismatic/Privileged.entitlements "$APP/${{ matrix.scheme }}"
+              for f in "$APP"/Frameworks/*.framework; do [ -d "$f" ] && ldid -S "$f/$(basename "$f" .framework)"; done
               mkdir Payload && cp -R "$APP" Payload/ && zip -qry out/Prismatic-TrollStore.tipa Payload ;;
             jailbreak)
               ldid -SPrismatic/Privileged.entitlements "$APP/${{ matrix.scheme }}"
+              for f in "$APP"/Frameworks/*.framework; do [ -d "$f" ] && ldid -S "$f/$(basename "$f" .framework)"; done
               for mode in rootful rootless; do
                 if [ $mode = rootful ]; then DIR=Applications; ARCH=iphoneos-arm; else DIR=var/jb/Applications; ARCH=iphoneos-arm64; fi
                 rm -rf pkg && mkdir -p pkg/$DIR pkg/DEBIAN

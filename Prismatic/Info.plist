@@ -8,5 +8,5 @@
 <key>CFBundleVersion</key><string>1</string>
 <key>UILaunchScreen</key><dict/>
 <key>CFBundleURLTypes</key><array><dict><key>CFBundleURLSchemes</key><array><string>prismatic</string></array></dict></array>
-<key>LSApplicationQueriesSchemes</key><array><string>sidestore</string><string>stikjit</string></array>
+<key>LSApplicationQueriesSchemes</key><array><string>sidestore</string><string>stikjit</string><string>apple-magnifier</string></array>
 </dict></plist>

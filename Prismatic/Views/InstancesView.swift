@@ -4,6 +4,8 @@ struct InstancesView: View {
     @EnvironmentObject var store: InstanceStore
     @EnvironmentObject var acct: AccountState
     @State private var adding = false
+    @State private var showLogs = false
+    @State private var launchError: String?
     @State private var exportItem: ExportItem?
     @State private var exportError: String?
 
@@ -19,6 +21,7 @@ struct InstancesView: View {
                             Button { store.delete(inst) } label: { Label("Delete", systemImage: "trash") }
                         }
                 }.onDelete { idx in idx.map { store.instances[$0] }.forEach(store.delete) }
+                if let e = launchError { Text(e).foregroundColor(.red) }
                 if let e = exportError { Text(e).foregroundColor(.red) }
                 if store.instances.isEmpty {
                     Text("No instances yet. Tap + and import a Geometry Dash IPA.").foregroundColor(.secondary)
@@ -26,11 +29,16 @@ struct InstancesView: View {
             }
             .navigationTitle("Prismatic")
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Logs") { showLogs = true }.font(.footnote)
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button { adding = true } label: { Image(systemName: "plus") }
                 }
             }
             .sheet(isPresented: $adding) { AddInstanceView().environmentObject(store).environmentObject(acct) }
+            .sheet(isPresented: $showLogs) { LogView() }
+            .onAppear { launchError = LaunchStatus.take() }
             .sheet(item: $exportItem) { ShareSheet(url: $0.url) }
         }.navigationViewStyle(StackNavigationViewStyle())
     }

@@ -22,7 +22,7 @@ targetTemplates:
     settings:
       base:
         CLANG_CXX_LANGUAGE_STANDARD: gnu++17
-        HEADER_SEARCH_PATHS: "$(SRCROOT)/Prismatic/Vendor/ZSign $(SRCROOT)/Prismatic/Vendor/ZSign/common $(SRCROOT)/Prismatic/Vendor/litehook/src $(SRCROOT)/Prismatic/Vendor/litehook/external/include $(SRCROOT)/Prismatic/Vendor/DyldBypass"
+        HEADER_SEARCH_PATHS: "$(SRCROOT)/Prismatic/Vendor/ZSign $(SRCROOT)/Prismatic/Vendor/ZSign/common $(SRCROOT)/Prismatic/Vendor/litehook/src $(SRCROOT)/Prismatic/Vendor/litehook/external/include $(SRCROOT)/Prismatic/Vendor/DyldBypass $(SRCROOT)/Prismatic/Vendor/LCMachO"
         FRAMEWORK_SEARCH_PATHS: "$(SRCROOT)/OpenSSL/Frameworks/iphoneos"
         OTHER_LDFLAGS: "$(inherited) -lc++"
         SWIFT_OBJC_BRIDGING_HEADER: Prismatic/Launcher/Prismatic-Bridging-Header.h

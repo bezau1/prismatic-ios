@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 enum DecryptError: LocalizedError {
     case unavailable, notInstalled, versionMismatch(installed: String, wanted: String), failed(String)
@@ -13,6 +14,16 @@ enum DecryptError: LocalizedError {
 }
 
 enum Decryptor {
+    /// Runs blocking work off the main thread under a background task, so iOS doesn't suspend Prismatic
+    /// while Geometry Dash is briefly in front during a dump.
+    @MainActor static func inBackground(_ work: @escaping () throws -> Void) async throws {
+        let app = UIApplication.shared
+        var bg = UIBackgroundTaskIdentifier.invalid
+        bg = app.beginBackgroundTask(withName: "prismatic-decrypt") { app.endBackgroundTask(bg); bg = .invalid }
+        defer { if bg != .invalid { app.endBackgroundTask(bg) } }
+        try await Task.detached(priority: .userInitiated) { try work() }.value
+    }
+
     static var installedPath: String? { PrismaticInstalledAppPath(AppStoreClient.gdBundleId) }
     static var installedVersion: String? {
         guard let p = installedPath else { return nil }

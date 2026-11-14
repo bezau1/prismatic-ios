@@ -28,7 +28,7 @@ struct AddInstanceView: View {
                 if Variant.current.canDecrypt {
                     Section(header: Text("From this device"),
                             footer: Text(Decryptor.installedVersion.map { "Installed: GD \($0)" } ?? "Geometry Dash isn't installed.")) {
-                        Button("Use installed copy (decrypt)") { fromInstalled() }.disabled(Decryptor.installedVersion == nil)
+                        Button(busy ? "Decrypting…" : "Use installed copy (decrypt)") { Task { await fromInstalled() } }.disabled(busy).disabled(Decryptor.installedVersion == nil)
                     }
                 }
 
@@ -107,11 +107,14 @@ struct AddInstanceView: View {
             store.add(done); pm.wrappedValue.dismiss()
         } catch { self.error = error.localizedDescription; progress = nil }
     }
-    @MainActor func fromInstalled() {
+    @MainActor func fromInstalled() async {
         guard let v = Decryptor.installedVersion else { return }
+        busy = true; error = nil; defer { busy = false }
         var inst = Instance(name: name == "Geometry Dash" ? "Geometry Dash \(v)" : name, gdVersion: v)
+        let target = inst
         do {
-            try Decryptor.decryptInstalled(into: inst)
+            PLog.log("use installed copy: GD \(v)")
+            try await Decryptor.inBackground { try Decryptor.decryptInstalled(into: target) }
             try FileManager.default.createDirectory(at: inst.dataDir, withIntermediateDirectories: true)
             inst.encrypted = MachOInspector.isEncrypted(inst.appBundle.appendingPathComponent("GeometryJump"))
             store.add(inst); pm.wrappedValue.dismiss()

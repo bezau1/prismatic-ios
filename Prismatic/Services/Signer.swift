@@ -21,7 +21,12 @@ enum Signer {
         if let exe = NSDictionary(contentsOf: app.appendingPathComponent("Info.plist"))?["CFBundleExecutable"] as? String {
             targets.append(app.appendingPathComponent(exe).path)
         }
-        for t in targets where !sign(t, bundleId: bundleId) { throw StoreError.malformed("signing failed: \(t)") }
+        // Convert the game executable into a loadable dylib first (this changes the file, so it must precede signing).
+        if let exe = NSDictionary(contentsOf: app.appendingPathComponent("Info.plist"))?["CFBundleExecutable"] as? String,
+           let problem = PrismaticPatchExecutable(app.appendingPathComponent(exe).path) {
+            throw StoreError.message("Couldn't prepare the game binary: \(problem)")
+        }
+        for t in targets where !sign(t, bundleId: bundleId) { throw StoreError.message("Signing failed for \(t)") }
     }
 
     @discardableResult

@@ -58,18 +58,27 @@ struct InstanceDetailView: View {
     @MainActor func run(geode: Bool) async {
         busy = true; message = geode ? "Preparing Geode…" : "Launching…"; defer { busy = false }
         do {
-            if geode && instance.geodeVersion == nil {
+            if instance.encrypted && Variant.current.canDecrypt {
+                message = "Installing and decrypting this build first (one time)…"
+                let inst = instance
+                try await Decryptor.inBackground { try Decryptor.installAndDecrypt(inst) }
+                instance.encrypted = MachOInspector.isEncrypted(instance.appBundle.appendingPathComponent("GeometryJump"))
+                store.update(instance)
+            }
+            if geode && (instance.geodeVersion == nil || !FileManager.default.fileExists(atPath: GeodeManager.dylibPath(instance))) {
+                message = "Downloading Geode…"
                 instance.geodeVersion = try await GeodeManager.install(into: instance)
                 instance.geodeEnabled = true; store.update(instance)
             }
-            try Launcher.prepareAndLaunch(&instance, geode: geode)
-            store.update(instance)
+            message = "Restarting to start the game…"
+            try Launcher.launch(instance, geode: geode)
         } catch { message = error.localizedDescription }
     }
     @MainActor func installDecrypt() async {
         busy = true; message = "Installing, decrypting, cleaning up… this can take a minute."; defer { busy = false }
         do {
-            try Decryptor.installAndDecrypt(instance)
+            let inst = instance
+            try await Decryptor.inBackground { try Decryptor.installAndDecrypt(inst) }
             instance.encrypted = MachOInspector.isEncrypted(instance.appBundle.appendingPathComponent("GeometryJump"))
             store.update(instance); message = instance.encrypted ? "Still encrypted." : "Decrypted. Ready to launch."
         } catch { message = error.localizedDescription }

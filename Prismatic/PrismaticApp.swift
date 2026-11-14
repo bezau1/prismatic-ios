@@ -1,7 +1,6 @@
 import SwiftUI
 import ApplePackage
 
-@main
 struct PrismaticApp: App {
     @StateObject private var store = InstanceStore()
     @StateObject private var account = AccountState()
