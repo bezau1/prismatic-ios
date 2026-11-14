@@ -36,6 +36,9 @@ enum IPAInstaller {
         try? fm.removeItem(at: inst.appBundle)
         try fm.moveItem(at: app, to: inst.appBundle)
         try? fm.removeItem(at: tmp)
+        if !MachOInspector.isEncrypted(inst.appBundle.appendingPathComponent("GeometryJump")) {
+            try Signer.signBundle(inst.appBundle, bundleId: inst.bundleId) // decrypted import: re-sign
+        }
         if let s = sinf { // keep the FairPlay receipt next to the binary, as installd would
             let sc = inst.appBundle.appendingPathComponent("SC_Info")
             try fm.createDirectory(at: sc, withIntermediateDirectories: true)

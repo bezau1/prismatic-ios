@@ -27,6 +27,7 @@ enum Decryptor {
         try FileManager.default.createDirectory(at: inst.appBundle.deletingLastPathComponent(), withIntermediateDirectories: true)
         var err: NSString?
         if !PrismaticDecryptBundle(src, inst.appBundle.path, &err) { throw DecryptError.failed(err as String? ?? "decrypt failed") }
+        try Signer.signBundle(inst.appBundle, bundleId: inst.bundleId) // original signature no longer matches the decrypted pages
     }
 
     /// TrollStore + Jailbreak, one-time per instance:

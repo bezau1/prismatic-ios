@@ -20,8 +20,10 @@ Both privileged builds uninstall the App Store copy of GD (and its save data) wh
 
 ## Status: scaffold, not compiled or tested
 Nothing has been built or run on a device. Known gaps:
-1. Decrypted binaries still need re-signing (LiveContainer uses zsign) before `dlopen` accepts them; not yet ported.
+1. Re-signing is ported (LiveContainer's ZSign, ad-hoc) but LiveContainer's dyld validation bypass and Mach-O utils aren't yet, so `dlopen` of the re-signed binary may still be refused in the standard build.
 2. Loader needs real-device work (fat→thin, dylib conversion, dyld validation bypass, more hooks).
 3. The installd install/uninstall calls (`PackageType`, entitlements, whether installd accepts the sinf IPA on-device) are best guesses.
 4. `GeodeManager.repo` is a placeholder. Tokens are in UserDefaults; move to Keychain.
-5. LiveContainer is AGPL-3.0; copying its code makes Prismatic AGPL-3.0.
+5. Prismatic is AGPL-3.0 (see `LICENSE`, `NOTICE.md`) because it includes LiveContainer code.
+
+Local builds: `git clone --depth 1 --branch 3.6.5000 --filter=blob:none --sparse https://github.com/krzyzanowskim/OpenSSL && git -C OpenSSL sparse-checkout set Frameworks` before `xcodegen`.

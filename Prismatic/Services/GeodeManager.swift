@@ -26,6 +26,7 @@ enum GeodeManager {
         try fm.createDirectory(at: inst.geodeDir, withIntermediateDirectories: true)
         let dest = inst.root.appendingPathComponent("Geode.ios.dylib")
         try? fm.removeItem(at: dest); try fm.moveItem(at: tmp, to: dest)
+        Signer.sign(dest.path, bundleId: inst.bundleId)
         return rel.tag_name
     }
     static func dylibPath(_ inst: Instance) -> String { inst.root.appendingPathComponent("Geode.ios.dylib").path }
