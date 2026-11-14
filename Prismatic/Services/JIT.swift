@@ -2,7 +2,9 @@ import UIKit
 
 /// JIT status + requesting it from a companion app (StikJIT / SideStore), as LiveContainer does.
 enum JIT {
-    static var isEnabled: Bool { PrismaticIsJITEnabled() }
+    static var isEnabled: Bool {
+        Variant.current != .standard || PrismaticIsJITEnabled() // privileged builds carry dynamic-codesigning
+    }
 
     /// Asks an enabler app to attach a debugger to Prismatic, then returns here.
     @MainActor static func request() {

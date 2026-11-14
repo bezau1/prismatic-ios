@@ -1,4 +1,4 @@
-name: Build IPA
+name: Build
 
 on:
   push:
@@ -9,55 +9,48 @@ on:
 jobs:
   build:
     runs-on: macos-14
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { scheme: Prismatic,             kind: standard }
+          - { scheme: Prismatic-TrollStore,  kind: trollstore }
+          - { scheme: Prismatic-Jailbreak,   kind: jailbreak }
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install XcodeGen
-        run: brew install xcodegen
-
-      - name: Generate Xcode project
-        run: xcodegen generate
-
+      - name: Tools
+        run: brew install xcodegen ldid dpkg
+      - run: xcodegen generate
       - name: Build (unsigned)
         run: |
           set -o pipefail
-          xcodebuild \
-            -project Prismatic.xcodeproj \
-            -scheme Prismatic \
-            -configuration Release \
-            -sdk iphoneos \
-            -destination 'generic/platform=iOS' \
-            -derivedDataPath build \
+          xcodebuild -project Prismatic.xcodeproj -scheme "${{ matrix.scheme }}" -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
             build | tee build.log | tail -n 60
-
-      - name: Package IPA
+      - name: Package
         run: |
-          mkdir -p Payload
-          cp -R build/Build/Products/Release-iphoneos/Prismatic.app Payload/
-          zip -qry Prismatic.ipa Payload
-
+          APP="build/Build/Products/Release-iphoneos/${{ matrix.scheme }}.app"
+          mkdir -p out
+          case "${{ matrix.kind }}" in
+            standard)
+              mkdir Payload && cp -R "$APP" Payload/ && zip -qry out/Prismatic.ipa Payload ;;
+            trollstore)
+              ldid -SPrismatic/Privileged.entitlements "$APP/${{ matrix.scheme }}"
+              mkdir Payload && cp -R "$APP" Payload/ && zip -qry out/Prismatic-TrollStore.tipa Payload ;;
+            jailbreak)
+              ldid -SPrismatic/Privileged.entitlements "$APP/${{ matrix.scheme }}"
+              for mode in rootful rootless; do
+                if [ $mode = rootful ]; then DIR=Applications; ARCH=iphoneos-arm; else DIR=var/jb/Applications; ARCH=iphoneos-arm64; fi
+                rm -rf pkg && mkdir -p pkg/$DIR pkg/DEBIAN
+                cp -R "$APP" pkg/$DIR/Prismatic.app
+                printf 'Package: dev.prismatic.launcher\nName: Prismatic\nVersion: 0.1.0\nArchitecture: %s\nSection: Utilities\nDepends: firmware (>= 14.0)\nDescription: Geometry Dash instance launcher\nMaintainer: Prismatic\nAuthor: Prismatic\n' $ARCH > pkg/DEBIAN/control
+                printf '#!/bin/sh\nuicache -p /%s/Prismatic.app 2>/dev/null || true\n' $DIR > pkg/DEBIAN/postinst; chmod 755 pkg/DEBIAN/postinst
+                dpkg-deb -Zxz -b pkg out/Prismatic-Jailbreak-$mode.deb
+              done ;;
+          esac
       - uses: actions/upload-artifact@v4
-        with:
-          name: Prismatic-unsigned-ipa
-          path: Prismatic.ipa
-
+        with: { name: "${{ matrix.scheme }}", path: out/* }
       - uses: actions/upload-artifact@v4
         if: failure()
-        with:
-          name: build-log
-          path: build.log
-
-  release:
-    needs: build
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    permissions: { contents: write }
-    steps:
-      - uses: actions/download-artifact@v4
-        with: { name: Prismatic-unsigned-ipa }
-      - uses: softprops/action-gh-release@v2
-        with:
-          tag_name: nightly
-          prerelease: true
-          files: Prismatic.ipa
+        with: { name: "build-log-${{ matrix.kind }}", path: build.log }

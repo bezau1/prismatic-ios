@@ -43,7 +43,6 @@ static NSString *patchedCopy(NSString *exe, NSString *dir) {
     uint8_t *p = (uint8_t *)(h + 1);
     for (uint32_t i = 0; i < h->ncmds; i++) {
         struct load_command *lc = (void *)p;
-        if (lc->cmd == LC_MAIN) { lc->cmd = LC_ID_DYLIB == 0 ? lc->cmd : lc->cmd; }
         p += lc->cmdsize;
     }
     [d writeToFile:dst atomically:YES];
@@ -86,11 +85,10 @@ void PrismaticLaunchGuest(NSString *appPath, NSString *dataPath, NSString *bundl
     if (!handle) { NSLog(@"[Prismatic] guest dlopen failed: %s", dlerror()); return; }
 
     // main() = image base + LC_MAIN entryoff
-    Dl_info info; void *sym = dlsym(handle, "_mh_dylib_header") ?: dlsym(handle, "__mh_execute_header");
+    void *sym = dlsym(handle, "_mh_dylib_header") ?: dlsym(handle, "__mh_execute_header");
     uintptr_t base = sym ? (uintptr_t)sym : 0;
     if (!base) { NSLog(@"[Prismatic] cannot locate guest image base"); return; }
     int (*guestMain)(int, char **) = (void *)(base + entryOffset(exe));
     char *argv[] = { (char *)exe.UTF8String, NULL };
-    (void)info;
     exit(guestMain(1, argv));
 }

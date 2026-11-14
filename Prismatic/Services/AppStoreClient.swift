@@ -38,7 +38,7 @@ final class AppStoreClient {
         UserDefaults.standard.set(g, forKey: k); return g
     }()
     private let ua = "Configurator/2.17 (Macintosh; OS X 15.2; 24C5089c) AppleWebKit/0620.1.16.11.6"
-    private let session = URLSession(configuration: .ephemeral)
+    private let session = URLSession(configuration: .ephemeral, delegate: RedirectBlocker(), delegateQueue: nil)
 
     // MARK: Auth
     func login(email: String, password: String, code: String? = nil) async throws -> AppStoreAccount {
@@ -68,7 +68,7 @@ final class AppStoreClient {
     // MARK: Lookup / versions
     func trackId(country: String = "US") async throws -> Int {
         let u = URL(string: "https://itunes.apple.com/lookup?bundleId=\(Self.gdBundleId)&country=\(country)")!
-        let (d, _) = try await session.data(from: u)
+        let (d, _) = try await session.pData(from: u)
         let j = try JSONSerialization.jsonObject(with: d) as? [String: Any]
         guard let r = (j?["results"] as? [[String: Any]])?.first, let id = r["trackId"] as? Int
         else { throw StoreError.malformed("app not found in storefront") }
@@ -118,8 +118,7 @@ final class AppStoreClient {
             r.setValue(a.passwordToken, forHTTPHeaderField: "X-Token")
         }
         r.httpBody = try PropertyListSerialization.data(fromPropertyList: body, format: .xml, options: 0)
-        let noRedirect = RedirectBlocker()
-        let (d, resp) = try await session.data(for: r, delegate: noRedirect)
+        let (d, resp) = try await session.pData(for: r)
         let http = resp as! HTTPURLResponse
         let plist = (try? PropertyListSerialization.propertyList(from: d, format: nil)) as? [String: Any] ?? [:]
         if http.statusCode >= 400 { throw StoreError.http(http.statusCode) }
@@ -129,5 +128,5 @@ final class AppStoreClient {
 
 private final class RedirectBlocker: NSObject, URLSessionTaskDelegate {
     func urlSession(_ s: URLSession, task: URLSessionTask, willPerformHTTPRedirection r: HTTPURLResponse,
-                    newRequest: URLRequest) async -> URLRequest? { nil }
+                    newRequest: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) { completionHandler(nil) }
 }

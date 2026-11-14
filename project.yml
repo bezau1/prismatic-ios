@@ -1,13 +1,13 @@
 name: Prismatic
 options:
   bundleIdPrefix: dev.prismatic
-  deploymentTarget: { iOS: "16.0" }
+  deploymentTarget: { iOS: "14.0" }   # Geode iOS needs 14; nothing here requires newer
 packages:
   ZIPFoundation:
     url: https://github.com/weichsel/ZIPFoundation
     from: 0.9.19
-targets:
-  Prismatic:
+targetTemplates:
+  App:
     type: application
     platform: iOS
     sources: [Prismatic]
@@ -18,5 +18,25 @@ targets:
         SWIFT_OBJC_BRIDGING_HEADER: Prismatic/Launcher/Prismatic-Bridging-Header.h
         PRODUCT_BUNDLE_IDENTIFIER: dev.prismatic.launcher
         INFOPLIST_FILE: Prismatic/Info.plist
-        # Needed so guest code can be mapped RWX when JIT is attached
+        IPHONEOS_DEPLOYMENT_TARGET: "14.0"
+targets:
+  Prismatic:                # sideload build (SideStore/AltStore/Feather): needs JIT + decrypted IPA
+    templates: [App]
+    settings:
+      base:
+        PRODUCT_NAME: Prismatic
         CODE_SIGN_ENTITLEMENTS: Prismatic/Prismatic.entitlements
+  Prismatic-TrollStore:     # .tipa: decrypts the installed App Store GD (TrollDecrypt method)
+    templates: [App]
+    settings:
+      base:
+        PRODUCT_NAME: Prismatic-TrollStore
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) PRISMATIC_TROLLSTORE"
+        GCC_PREPROCESSOR_DEFINITIONS: "$(inherited) PRISMATIC_PRIVILEGED=1"
+  Prismatic-Jailbreak:      # .deb: installs the exact pulled version, decrypts on launch
+    templates: [App]
+    settings:
+      base:
+        PRODUCT_NAME: Prismatic-Jailbreak
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) PRISMATIC_JAILBREAK"
+        GCC_PREPROCESSOR_DEFINITIONS: "$(inherited) PRISMATIC_PRIVILEGED=1 PRISMATIC_JAILBREAK=1"

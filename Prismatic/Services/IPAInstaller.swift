@@ -13,11 +13,11 @@ enum IPAInstaller {
         try fm.createDirectory(at: inst.dataDir, withIntermediateDirectories: true)
 
         let ipa = inst.root.appendingPathComponent("game.ipa")
-        let (tmp, _) = try await URLSession.shared.download(from: info.url)
+        let (tmp, _) = try await URLSession.shared.pDownload(from: info.url)
         try? fm.removeItem(at: ipa); try fm.moveItem(at: tmp, to: ipa)
         progress(0.8)
         try await extract(ipa: ipa, sinf: info.sinf, into: inst)
-        try? fm.removeItem(at: ipa)
+        if Variant.current != .jailbreak { try? fm.removeItem(at: ipa) } // JB reinstalls from it to decrypt
         progress(1)
         var i = inst; i.externalVersionId = version.externalId; i.gdVersion = version.version
         i.encrypted = MachOInspector.isEncrypted(inst.appBundle.appendingPathComponent("GeometryJump"))
