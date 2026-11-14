@@ -1,3 +1,5 @@
+<p align="center"><img src="logo.png" width="120"></p>
+
 # Prismatic
 
 A Minecraft-launcher-style manager for Geometry Dash on iOS (min iOS 14). Create **instances** (one per GD version), pull builds from Apple's servers with the Apple ID that bought the game, and run them in-process LiveContainer-style, with optional **Geode mode** (GD 2.2 – 2.2081) .
