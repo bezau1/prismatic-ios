@@ -18,14 +18,14 @@ struct InstanceDetailView: View {
             }
             Section(footer: footer) {
                 Button("Launch") { Task { await run(geode: false) } }
-                    .disabled(busy || (instance.encrypted && Variant.current != .jailbreak))
+                    .disabled(busy || (instance.encrypted && !Variant.current.canDecrypt))
                 Button("Geode mode") { Task { await run(geode: true) } }
                     .disabled(busy || !GeodeManager.isSupported(instance.gdVersion)
-                              || (instance.encrypted && Variant.current != .jailbreak))
+                              || (instance.encrypted && !Variant.current.canDecrypt))
             }
-            if instance.encrypted && Variant.current == .trollStore {
-                Section(footer: Text("Dumps the decrypted binary from the App Store copy of GD. Its version must match this instance.")) {
-                    Button("Decrypt from installed GD") { decrypt() }
+            if instance.encrypted && Variant.current.canDecrypt {
+                Section(footer: Text("Installs GD \(instance.gdVersion) from the App Store IPA, decrypts it, then deletes the installed app. Done once; after that this instance runs without FairPlay.")) {
+                    Button("Install & decrypt now") { Task { await installDecrypt() } }.disabled(busy)
                 }
             }
             if instance.encrypted && Variant.current == .standard {
@@ -43,7 +43,7 @@ struct InstanceDetailView: View {
 
     var footer: Text {
         Text(!GeodeManager.isSupported(instance.gdVersion) ? "Geode supports GD 2.2 – 2.2081."
-             : (Variant.current == .jailbreak && instance.encrypted ? "Launching will install and decrypt this build automatically (replaces the App Store copy of GD)." : ""))
+             : (Variant.current.canDecrypt && instance.encrypted ? "First launch installs and decrypts this build, then deletes the App Store copy of GD (once)." : ""))
     }
 
     @MainActor func run(geode: Bool) async {
@@ -57,9 +57,10 @@ struct InstanceDetailView: View {
             store.update(instance)
         } catch { message = error.localizedDescription }
     }
-    @MainActor func decrypt() {
+    @MainActor func installDecrypt() async {
+        busy = true; message = "Installing, decrypting, cleaning up… this can take a minute."; defer { busy = false }
         do {
-            try Decryptor.decryptInstalled(into: instance)
+            try Decryptor.installAndDecrypt(instance)
             instance.encrypted = MachOInspector.isEncrypted(instance.appBundle.appendingPathComponent("GeometryJump"))
             store.update(instance); message = instance.encrypted ? "Still encrypted." : "Decrypted. Ready to launch."
         } catch { message = error.localizedDescription }

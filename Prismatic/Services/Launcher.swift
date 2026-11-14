@@ -12,9 +12,9 @@ enum LaunchError: LocalizedError {
 }
 
 enum Launcher {
-    /// Jailbreak "decrypt on the go": decrypts first if needed. Other builds just launch.
+    /// TrollStore/Jailbreak: first launch installs + decrypts + removes the App Store copy, later launches skip all that.
     @MainActor static func prepareAndLaunch(_ inst: inout Instance, geode: Bool) throws {
-        if inst.encrypted && Variant.current == .jailbreak {
+        if inst.encrypted && Variant.current.canDecrypt {
             try Decryptor.installAndDecrypt(inst)
             inst.encrypted = MachOInspector.isEncrypted(inst.appBundle.appendingPathComponent("GeometryJump"))
         }

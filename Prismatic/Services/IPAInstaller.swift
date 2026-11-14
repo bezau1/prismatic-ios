@@ -17,7 +17,7 @@ enum IPAInstaller {
         try? fm.removeItem(at: ipa); try fm.moveItem(at: tmp, to: ipa)
         progress(0.8)
         try await extract(ipa: ipa, sinf: info.sinf, into: inst)
-        if Variant.current != .jailbreak { try? fm.removeItem(at: ipa) } // JB reinstalls from it to decrypt
+        if !Variant.current.canDecrypt { try? fm.removeItem(at: ipa) } // privileged builds reinstall from it to decrypt
         progress(1)
         var i = inst; i.externalVersionId = version.externalId; i.gdVersion = version.version
         i.encrypted = MachOInspector.isEncrypted(inst.appBundle.appendingPathComponent("GeometryJump"))

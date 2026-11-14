@@ -100,7 +100,7 @@ BOOL PrismaticDecryptBundle(NSString *src, NSString *dst, NSString **err) {
 BOOL PrismaticDecryptBundle(NSString *s, NSString *d, NSString **err) { FAIL(@"Decrypt isn't available in the standard build."); }
 #endif
 
-#if PRISMATIC_JAILBREAK
+#if PRISMATIC_PRIVILEGED
 BOOL PrismaticInstallIPA(NSString *ipa, NSString **err) {
     id ws = [NSClassFromString(@"LSApplicationWorkspace") performSelector:NSSelectorFromString(@"defaultWorkspace")];
     SEL sel = NSSelectorFromString(@"installApplication:withOptions:error:");
@@ -114,6 +114,20 @@ BOOL PrismaticInstallIPA(NSString *ipa, NSString **err) {
     if (!ok) FAIL(e.localizedDescription ?: @"installd refused the IPA (is AppSync installed?).");
     return YES;
 }
+
+BOOL PrismaticUninstallApp(NSString *bid, NSString **err) {
+    id ws = [NSClassFromString(@"LSApplicationWorkspace") performSelector:NSSelectorFromString(@"defaultWorkspace")];
+    SEL sel = NSSelectorFromString(@"uninstallApplication:withOptions:");
+    if (![ws respondsToSelector:sel]) FAIL(@"uninstallApplication API missing on this iOS version.");
+    NSMethodSignature *sig = [ws methodSignatureForSelector:sel];
+    NSInvocation *inv = [NSInvocation invocationWithMethodSignature:sig];
+    NSDictionary *opts = nil; inv.target = ws; inv.selector = sel;
+    [inv setArgument:&bid atIndex:2]; [inv setArgument:&opts atIndex:3];
+    [inv invoke]; BOOL ok = NO; [inv getReturnValue:&ok];
+    if (!ok) FAIL(@"installd refused to uninstall GD.");
+    return YES;
+}
 #else
-BOOL PrismaticInstallIPA(NSString *i, NSString **err) { FAIL(@"Install is jailbreak-only."); }
+BOOL PrismaticInstallIPA(NSString *i, NSString **err) { FAIL(@"Install needs the TrollStore or Jailbreak build."); }
+BOOL PrismaticUninstallApp(NSString *b, NSString **err) { FAIL(@"Uninstall needs the TrollStore or Jailbreak build."); }
 #endif
